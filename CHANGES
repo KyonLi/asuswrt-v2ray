@@ -1,2 +1,5 @@
+3.16.0-2 2018-04-06
+- Fix a bug in init.d script
+
 3.16.0-1 2018-04-06
 - Initial release
