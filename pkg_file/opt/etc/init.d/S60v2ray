@@ -26,26 +26,26 @@ apply_nat(){
 }
 
 flush_nat(){
-    iptables -t nat -D PREROUTING -p tcp -j V2RAY > /dev/null 2>&1
+    iptables -t nat -D PREROUTING -p tcp -j V2RAY >/dev/null 2>&1
     sleep 1
-    iptables -t nat -F V2RAY > /dev/null 2>&1 && iptables -t nat -X V2RAY > /dev/null 2>&1
+    iptables -t nat -F V2RAY >/dev/null 2>&1 && iptables -t nat -X V2RAY >/dev/null 2>&1
 }
 
 case "$1" in
   start)
-    $DAEMON $DAEMON_OPTS & > /dev/null 2>&1
+    nohup $DAEMON $DAEMON_OPTS >/dev/null 2>&1 &
     ;;
 
   force-reload)
     killall $NAME
     sleep 1
-    $DAEMON $DAEMON_OPTS & > /dev/null 2>&1
+    nohup $DAEMON $DAEMON_OPTS >/dev/null 2>&1 &
     ;;
 
   restart)
     killall $NAME
     sleep 1
-    $DAEMON $DAEMON_OPTS & > /dev/null 2>&1
+    nohup $DAEMON $DAEMON_OPTS >/dev/null 2>&1 &
     ;;
 
   stop)
