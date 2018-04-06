@@ -9,7 +9,7 @@
 3. 路由器架构满足V2Ray要求。
 
 ## 预置规则说明
-pkg_file/opt/bin/v2ray/geosite.dat 中预置两个域名表：`gfwlist`和`googlecn`，`googlecn`为白名单直连，优先级高于`gfwlist`；
+pkg_file/opt/bin/v2ray/geosite.dat 中预置两个域名表：`gfw`和`googlecn`，`googlecn`为白名单直连，优先级高于`gfw`；
 
 `googlecn`使用 @felixonmars 的 [dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list) 中Google部分。
 
