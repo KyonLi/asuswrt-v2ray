@@ -2,7 +2,7 @@ Package: v2ray
 Architecture: arm
 Priority: optional
 Section: net
-Version: 3.15.0-1
+Version: 3.16.0-1
 OptionalUtility:
 Maintainer: Kyon
 Source: https://github.com/KyonLi/asuswrt-v2ray
