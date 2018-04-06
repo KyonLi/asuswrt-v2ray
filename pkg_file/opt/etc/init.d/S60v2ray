@@ -1,0 +1,72 @@
+#! /bin/sh
+
+NAME=v2ray
+DAEMON=/opt/bin/v2ray/v2ray
+DAEMON_OPTS="-config /opt/etc/v2ray/config.json"
+
+# Exit if the package is not installed
+[ -x $DAEMON ] || exit 0
+
+apply_nat(){
+    iptables -t nat -N V2RAY
+    iptables -t nat -A V2RAY -d 0.0.0.0/8 -j RETURN
+    iptables -t nat -A V2RAY -d 10.0.0.0/8 -j RETURN
+    iptables -t nat -A V2RAY -d 100.64.0.0/10 -j RETURN
+    iptables -t nat -A V2RAY -d 127.0.0.0/8 -j RETURN
+    iptables -t nat -A V2RAY -d 169.254.0.0/16 -j RETURN
+    iptables -t nat -A V2RAY -d 172.16.0.0/12 -j RETURN
+    iptables -t nat -A V2RAY -d 192.0.0.0/24 -j RETURN
+    iptables -t nat -A V2RAY -d 192.0.2.0/24 -j RETURN
+    iptables -t nat -A V2RAY -d 192.168.0.0/16 -j RETURN
+    iptables -t nat -A V2RAY -d 198.18.0.0/15 -j RETURN
+    iptables -t nat -A V2RAY -d 198.51.100.0/24 -j RETURN
+    iptables -t nat -A V2RAY -d 203.0.113.0/24 -j RETURN
+    iptables -t nat -A V2RAY -p tcp -j REDIRECT --to-ports 12345
+    iptables -t nat -A PREROUTING -p tcp -j V2RAY
+}
+
+flush_nat(){
+    iptables -t nat -D PREROUTING -p tcp -j V2RAY > /dev/null 2>&1
+    sleep 1
+    iptables -t nat -F V2RAY > /dev/null 2>&1 && iptables -t nat -X V2RAY > /dev/null 2>&1
+}
+
+case "$1" in
+  start)
+    $DAEMON $DAEMON_OPTS & > /dev/null 2>&1
+    ;;
+
+  force-reload)
+    killall $NAME
+    sleep 1
+    $DAEMON $DAEMON_OPTS & > /dev/null 2>&1
+    ;;
+
+  restart)
+    killall $NAME
+    sleep 1
+    $DAEMON $DAEMON_OPTS & > /dev/null 2>&1
+    ;;
+
+  stop)
+    killall $NAME
+    ;;
+
+  firewall-start)
+    apply_nat
+    ;;
+
+  firewall-restart)
+    apply_nat
+    ;;
+
+  firewall-stop)
+    flush_nat
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart|force-reload|firewall-start|firewall-stop|firewall-restart}"
+    exit 1
+    ;;
+esac
+exit 0

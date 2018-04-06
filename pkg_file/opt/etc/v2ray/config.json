@@ -1,0 +1,82 @@
+{
+    "log": {
+        "loglevel": "none"
+    },
+    "dns": {
+        "servers": [
+            "127.0.0.1"
+        ]
+    },
+    "inbound": {
+        "domainOverride": [
+            "tls",
+            "http"
+        ],
+        "port": 12345,
+        "protocol": "dokodemo-door",
+        "settings": {
+            "network": "tcp",
+            "followRedirect": true
+        }
+    },
+    "outbound": {
+        "protocol": "freedom",
+        "settings": {},
+        "tag": "direct"
+    },
+    "outboundDetour": [
+        {
+            "protocol": "vmess",
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "1.2.3.4",
+                        "port": 2333,
+                        "users": [
+                            {
+                                "id": "your client id",
+                                "level": 1,
+                                "alterId": 64
+                            }
+                        ]
+                    }
+                ]
+            },
+            "tag": "proxy"
+        }
+    ],
+    "routing": {
+        "strategy": "rules",
+        "settings": {
+            "rules": [
+                {
+                    "type": "field",
+                    "ip": [
+                        "91.108.4.0/22",
+                        "91.108.8.0/21",
+                        "91.108.16.0/21",
+                        "91.108.36.0/23",
+                        "91.108.56.0/22",
+                        "109.239.140.0/24",
+                        "149.154.160.0/20"
+                    ],
+                    "outboundTag": "proxy"
+                },
+                {
+                    "type": "field",
+                    "domain": [
+                        "geosite:googlecn"
+                    ],
+                    "outboundTag": "direct"
+                },
+                {
+                    "type": "field",
+                    "domain": [
+                        "geosite:gfw"
+                    ],
+                    "outboundTag": "proxy"
+                }
+            ]
+        }
+    }
+}
