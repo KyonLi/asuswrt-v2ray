@@ -4,31 +4,53 @@ NAME=v2ray
 DAEMON=/opt/bin/v2ray/v2ray
 DAEMON_OPTS="-config /opt/etc/v2ray/config.json"
 
+BYPASS_SOURCE_IP_FILE=/opt/etc/v2ray/bypass_from_ip.txt
+BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
+
 # Exit if the package is not installed
 [ -x $DAEMON ] || exit 0
 
+bypass_rule(){
+  if [ -f $BYPASS_SOURCE_IP_FILE ]
+  then
+    for ip in `cat $BYPASS_SOURCE_IP_FILE`
+    do
+      iptables -t nat -A V2RAY -s $ip -j RETURN
+    done
+  fi
+
+  if [ -f $BYPASS_SOURCE_MAC_FILE ]
+  then
+    for mac in `cat $BYPASS_SOURCE_MAC_FILE`
+    do
+      iptables -t nat -A V2RAY -m mac --mac-source $mac -j RETURN
+    done
+  fi
+}
+
 apply_nat(){
-    iptables -t nat -N V2RAY
-    iptables -t nat -A V2RAY -d 0.0.0.0/8 -j RETURN
-    iptables -t nat -A V2RAY -d 10.0.0.0/8 -j RETURN
-    iptables -t nat -A V2RAY -d 100.64.0.0/10 -j RETURN
-    iptables -t nat -A V2RAY -d 127.0.0.0/8 -j RETURN
-    iptables -t nat -A V2RAY -d 169.254.0.0/16 -j RETURN
-    iptables -t nat -A V2RAY -d 172.16.0.0/12 -j RETURN
-    iptables -t nat -A V2RAY -d 192.0.0.0/24 -j RETURN
-    iptables -t nat -A V2RAY -d 192.0.2.0/24 -j RETURN
-    iptables -t nat -A V2RAY -d 192.168.0.0/16 -j RETURN
-    iptables -t nat -A V2RAY -d 198.18.0.0/15 -j RETURN
-    iptables -t nat -A V2RAY -d 198.51.100.0/24 -j RETURN
-    iptables -t nat -A V2RAY -d 203.0.113.0/24 -j RETURN
-    iptables -t nat -A V2RAY -p tcp -j REDIRECT --to-ports 12345
-    iptables -t nat -A PREROUTING -p tcp -j V2RAY
+  iptables -t nat -N V2RAY
+  iptables -t nat -A V2RAY -d 0.0.0.0/8 -j RETURN
+  iptables -t nat -A V2RAY -d 10.0.0.0/8 -j RETURN
+  iptables -t nat -A V2RAY -d 100.64.0.0/10 -j RETURN
+  iptables -t nat -A V2RAY -d 127.0.0.0/8 -j RETURN
+  iptables -t nat -A V2RAY -d 169.254.0.0/16 -j RETURN
+  iptables -t nat -A V2RAY -d 172.16.0.0/12 -j RETURN
+  iptables -t nat -A V2RAY -d 192.0.0.0/24 -j RETURN
+  iptables -t nat -A V2RAY -d 192.0.2.0/24 -j RETURN
+  iptables -t nat -A V2RAY -d 192.168.0.0/16 -j RETURN
+  iptables -t nat -A V2RAY -d 198.18.0.0/15 -j RETURN
+  iptables -t nat -A V2RAY -d 198.51.100.0/24 -j RETURN
+  iptables -t nat -A V2RAY -d 203.0.113.0/24 -j RETURN
+  bypass_rule
+  iptables -t nat -A V2RAY -p tcp -j REDIRECT --to-ports 12345
+  iptables -t nat -A PREROUTING -p tcp -j V2RAY
 }
 
 flush_nat(){
-    iptables -t nat -D PREROUTING -p tcp -j V2RAY >/dev/null 2>&1
-    sleep 1
-    iptables -t nat -F V2RAY >/dev/null 2>&1 && iptables -t nat -X V2RAY >/dev/null 2>&1
+  iptables -t nat -D PREROUTING -p tcp -j V2RAY >/dev/null 2>&1
+  sleep 1
+  iptables -t nat -F V2RAY >/dev/null 2>&1 && iptables -t nat -X V2RAY >/dev/null 2>&1
 }
 
 case "$1" in
@@ -57,6 +79,7 @@ case "$1" in
     ;;
 
   firewall-restart)
+    flush_nat
     apply_nat
     ;;
 
@@ -70,3 +93,4 @@ case "$1" in
     ;;
 esac
 exit 0
+

@@ -1,0 +1,17 @@
+#! /bin/sh
+
+BYPASS_SOURCE_IP_FILE=/opt/etc/v2ray/bypass_from_ip.txt
+BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
+
+if [ ! -f $BYPASS_SOURCE_IP_FILE ]
+then
+  touch $BYPASS_SOURCE_IP_FILE
+fi
+
+if [ ! -f $BYPASS_SOURCE_MAC_FILE ]
+then
+  touch $BYPASS_SOURCE_MAC_FILE
+fi
+
+exit 0
+
