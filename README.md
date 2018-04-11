@@ -8,6 +8,8 @@
 
 3. 路由器架构满足V2Ray要求。
 
+__RT-AC86U(3.0.0.4.384.20467) newifi mini(RT-AC1200HP fw 3.0.0.4.380.8228) 测试通过__
+
 ## 预置规则说明
 pkg_file/opt/bin/v2ray/geosite.dat 中预置两个域名表：`gfw`和`googlecn`，`googlecn`为白名单直连，优先级高于`gfw`；
 
@@ -35,4 +37,4 @@ ipkg install v2ray_[version]_[architecture].ipk
 
 2. 编辑/opt/etc/v2ray/config.json，在`outboundDetour`填入自己的服务器信息；
 
-3. 重启路由器生效。
+3. 重启路由器生效，或运行 `/opt/etc/init.d/S60v2ray start` `/opt/etc/init.d/S60v2ray firewall-start` 手动开启。
