@@ -1,3 +1,7 @@
+3.17.0-1 2018-04-13
+- Add bypass proxy for specific source IP/MAC
+  more detail: /opt/etc/v2ray/README.TXT
+
 3.16.0-2 2018-04-06
 - Fix a bug in init.d script
 
