@@ -2,6 +2,7 @@
 
 BYPASS_SOURCE_IP_FILE=/opt/etc/v2ray/bypass_from_ip.txt
 BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
+V2RAY_PROCESS=`ps | grep v2ray | grep -v grep`
 
 if [ ! -f $BYPASS_SOURCE_IP_FILE ]
 then
@@ -13,5 +14,9 @@ then
   touch $BYPASS_SOURCE_MAC_FILE
 fi
 
-exit 0
+if [ -n "$V2RAY_PROCESS" ]
+then
+  /opt/etc/init.d/S60v2ray restart
+fi
 
+exit 0
