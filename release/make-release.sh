@@ -1,7 +1,7 @@
 #!/bin/bash
 
-V2RAY_VER="v3.21"
-PKG_VER="3.21.0-1"
+V2RAY_VER="v3.22"
+PKG_VER="3.22.0-1"
 
 WORK_PATH=$(dirname $(readlink -f $0))
 BUILD_SCRIPT=$WORK_PATH/build.sh
