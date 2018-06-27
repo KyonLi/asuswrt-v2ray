@@ -22,6 +22,7 @@ pkg_file/opt/bin/v2ray/geosite.dat 中预置两个域名表：`gfw`和`googlecn`
 
 2. 将下载的v2ray_*version*_*architecture*.ipk放入U盘，ssh执行
 ```bash
+ipkg update
 ipkg install v2ray_[version]_[architecture].ipk
 ```
 

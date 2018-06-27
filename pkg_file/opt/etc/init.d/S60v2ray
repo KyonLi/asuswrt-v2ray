@@ -3,6 +3,7 @@
 NAME=v2ray
 DAEMON=/opt/bin/v2ray/v2ray
 DAEMON_OPTS="-config /opt/etc/v2ray/config.json"
+PIDFILE=/tmp/var/run/$NAME.pid
 
 BYPASS_SOURCE_IP_FILE=/opt/etc/v2ray/bypass_from_ip.txt
 BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
@@ -10,87 +11,187 @@ BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
 # Exit if the package is not installed
 [ -x $DAEMON ] || exit 0
 
+#
+# Function that generate rules from config files
+#
 bypass_rule(){
-  if [ -f $BYPASS_SOURCE_IP_FILE ]
-  then
-    for ip in `cat $BYPASS_SOURCE_IP_FILE`
-    do
-      iptables -t nat -A V2RAY -s $ip -j RETURN
-    done
-  fi
+    if [ -f $BYPASS_SOURCE_IP_FILE ]
+    then
+        for ip in `cat $BYPASS_SOURCE_IP_FILE`
+        do
+            iptables -t nat -A V2RAY -s $ip -j RETURN
+        done
+    fi
 
-  if [ -f $BYPASS_SOURCE_MAC_FILE ]
-  then
-    for mac in `cat $BYPASS_SOURCE_MAC_FILE`
-    do
-      iptables -t nat -A V2RAY -m mac --mac-source $mac -j RETURN
-    done
-  fi
+    if [ -f $BYPASS_SOURCE_MAC_FILE ]
+    then
+        for mac in `cat $BYPASS_SOURCE_MAC_FILE`
+        do
+            iptables -t nat -A V2RAY -m mac --mac-source $mac -j RETURN
+        done
+    fi
 }
 
+#
+# Function that apply the iptables rules
+#
 apply_nat(){
-  iptables -t nat -N V2RAY
-  iptables -t nat -A V2RAY -d 0.0.0.0/8 -j RETURN
-  iptables -t nat -A V2RAY -d 10.0.0.0/8 -j RETURN
-  iptables -t nat -A V2RAY -d 100.64.0.0/10 -j RETURN
-  iptables -t nat -A V2RAY -d 127.0.0.0/8 -j RETURN
-  iptables -t nat -A V2RAY -d 169.254.0.0/16 -j RETURN
-  iptables -t nat -A V2RAY -d 172.16.0.0/12 -j RETURN
-  iptables -t nat -A V2RAY -d 192.0.0.0/24 -j RETURN
-  iptables -t nat -A V2RAY -d 192.0.2.0/24 -j RETURN
-  iptables -t nat -A V2RAY -d 192.168.0.0/16 -j RETURN
-  iptables -t nat -A V2RAY -d 198.18.0.0/15 -j RETURN
-  iptables -t nat -A V2RAY -d 198.51.100.0/24 -j RETURN
-  iptables -t nat -A V2RAY -d 203.0.113.0/24 -j RETURN
-  bypass_rule
-  iptables -t nat -A V2RAY -p tcp -j REDIRECT --to-ports 12345
-  iptables -t nat -A PREROUTING -p tcp -j V2RAY
+    iptables -t nat -N V2RAY
+    iptables -t nat -A V2RAY -d 0.0.0.0/8 -j RETURN
+    iptables -t nat -A V2RAY -d 10.0.0.0/8 -j RETURN
+    iptables -t nat -A V2RAY -d 100.64.0.0/10 -j RETURN
+    iptables -t nat -A V2RAY -d 127.0.0.0/8 -j RETURN
+    iptables -t nat -A V2RAY -d 169.254.0.0/16 -j RETURN
+    iptables -t nat -A V2RAY -d 172.16.0.0/12 -j RETURN
+    iptables -t nat -A V2RAY -d 192.0.0.0/24 -j RETURN
+    iptables -t nat -A V2RAY -d 192.0.2.0/24 -j RETURN
+    iptables -t nat -A V2RAY -d 192.168.0.0/16 -j RETURN
+    iptables -t nat -A V2RAY -d 198.18.0.0/15 -j RETURN
+    iptables -t nat -A V2RAY -d 198.51.100.0/24 -j RETURN
+    iptables -t nat -A V2RAY -d 203.0.113.0/24 -j RETURN
+    bypass_rule
+    iptables -t nat -A V2RAY -p tcp -j REDIRECT --to-ports 12345
+    iptables -t nat -A PREROUTING -p tcp -j V2RAY
 }
 
+#
+# Function that flush the iptables rules
+#
 flush_nat(){
-  iptables -t nat -D PREROUTING -p tcp -j V2RAY >/dev/null 2>&1
-  sleep 1
-  iptables -t nat -F V2RAY >/dev/null 2>&1 && iptables -t nat -X V2RAY >/dev/null 2>&1
+    iptables -t nat -D PREROUTING -p tcp -j V2RAY >/dev/null 2>&1
+    sleep 1
+    iptables -t nat -F V2RAY >/dev/null 2>&1 && iptables -t nat -X V2RAY >/dev/null 2>&1
+}
+
+#
+# Function that starts the daemon/service
+#
+do_start(){
+    mkdir -p /tmp/var/run
+    # Return
+    #   0 if daemon has been started
+    #   1 if daemon was already running
+    #   2 if daemon could not be started
+    #   3 if configuration file not ready for daemon
+    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+        || return 1
+    start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --background -m -- $DAEMON_OPTS \
+        || return 2
+    # Add code here, if necessary, that waits for the process to be ready
+    # to handle requests from services started subsequently which depend
+    # on this one.  As a last resort, sleep for some time.
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
+    # Wait for children to finish too if this is a daemon that forks
+    # and if the daemon is only ever run from this initscript.
+    # If the above conditions are not satisfied then add some other code
+    # that waits for the process to drop all resources that could be
+    # needed by services started subsequently.  A last resort is to
+    # sleep for some time.
+    start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
+    [ "$?" = 2 ] && return 2
+    # Many daemons don't delete their pidfiles when they exit.
+    rm -f $PIDFILE
+    return "$RETVAL"
+}
+
+#
+# Function that sends a SIGHUP to the daemon/service
+#
+do_reload() {
+    #
+    # If the daemon can reload its configuration without
+    # restarting (for example, when it is sent a SIGHUP),
+    # then implement that here.
+    #
+    start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE
+    return 0
+}
+
+log_daemon_msg(){
+    echo $1
+    logger $1
 }
 
 case "$1" in
   start)
-    nohup $DAEMON $DAEMON_OPTS >/dev/null 2>&1 &
+    echo "Starting $NAME"
+    do_start
+    case "$?" in
+        0) log_daemon_msg "$NAME started" ;;
+        1) log_daemon_msg "$NAME already running" ;;
+        *) log_daemon_msg "$NAME start failed" ;;
+    esac
     ;;
-
-  force-reload)
-    killall $NAME
-    sleep 1
-    nohup $DAEMON $DAEMON_OPTS >/dev/null 2>&1 &
-    ;;
-
-  restart)
-    killall $NAME
-    sleep 1
-    nohup $DAEMON $DAEMON_OPTS >/dev/null 2>&1 &
-    ;;
-
   stop)
-    killall $NAME
+    echo "Stopping $NAME"
+    do_stop
+    case "$?" in
+        0) log_daemon_msg "$NAME stopped" ;;
+        1) log_daemon_msg "$NAME already stopped" ;;
+        *) log_daemon_msg "$NAME stop failed" ;;
+    esac
     ;;
-
+  reload|force-reload)
+    #
+    # If do_reload() is not implemented then leave this commented out
+    # and leave 'force-reload' as an alias for 'restart'.
+    #
+    echo "Reloading $NAME"
+    do_reload
+    log_daemon_msg "$NAME reloaded"
+    ;;
+  restart|force-reload)
+    #
+    # If the "reload" option is implemented then remove the
+    # 'force-reload' alias
+    #
+    echo "Restarting $NAME"
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+        0) log_daemon_msg "$NAME restarted" ;;
+        1) log_daemon_msg "$NAME already running" ;; # Old process is still running
+        *) log_daemon_msg "$NAME restart failed" ;;  # Failed to start
+        esac
+        ;;
+      *)
+        # Failed to stop
+        log_daemon_msg "$NAME stop failed"
+        ;;
+    esac
+    ;;
   firewall-start)
     apply_nat
+    log_daemon_msg "$NAME applied firewall rules"
     ;;
-
+  firewall-stop)
+    flush_nat
+    log_daemon_msg "$NAME flushed firewall rules"
+    ;;
   firewall-restart)
     flush_nat
     apply_nat
+    log_daemon_msg "$NAME reapplied firewall rules"
     ;;
-
-  firewall-stop)
-    flush_nat
-    ;;
-
   *)
-    echo "Usage: $0 {start|stop|restart|force-reload|firewall-start|firewall-stop|firewall-restart}"
+    echo "Usage: $0 {start|stop|restart|reload|force-reload|firewall-start|firewall-stop|firewall-restart}"
     exit 1
     ;;
 esac
-exit 0
 

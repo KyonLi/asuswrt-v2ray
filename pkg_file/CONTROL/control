@@ -8,7 +8,7 @@ Maintainer: Kyon
 Source: https://github.com/KyonLi/asuswrt-v2ray
 URL:
 Description: Transparent proxy based on V2Ray
-Depends:
+Depends: start-stop-daemon
 Suggests:
 Conflicts:
 Enabled: yes
