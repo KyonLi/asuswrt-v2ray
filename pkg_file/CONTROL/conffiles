@@ -1,1 +1,3 @@
 /opt/etc/v2ray/config.json
+/opt/etc/v2ray/bypass_from_ip.txt
+/opt/etc/v2ray/bypass_from_mac.txt

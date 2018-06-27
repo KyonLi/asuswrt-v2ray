@@ -1,3 +1,4 @@
 #! /bin/sh
-/opt/etc/init.d/S60v2ray stop
+
 /opt/etc/init.d/S60v2ray firewall-stop
+/opt/etc/init.d/S60v2ray stop

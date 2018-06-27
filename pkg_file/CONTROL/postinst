@@ -1,18 +1,6 @@
 #! /bin/sh
 
-BYPASS_SOURCE_IP_FILE=/opt/etc/v2ray/bypass_from_ip.txt
-BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
-V2RAY_PROCESS=`ps | grep v2ray | grep -v grep`
-
-if [ ! -f $BYPASS_SOURCE_IP_FILE ]
-then
-  touch $BYPASS_SOURCE_IP_FILE
-fi
-
-if [ ! -f $BYPASS_SOURCE_MAC_FILE ]
-then
-  touch $BYPASS_SOURCE_MAC_FILE
-fi
+V2RAY_PROCESS=`ps | grep v2ray/v2ray | grep -v grep`
 
 if [ -n "$V2RAY_PROCESS" ]
 then
