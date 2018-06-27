@@ -39,7 +39,7 @@ git clone https://github.com/KyonLi/asuswrt-v2ray.git
 
 2. 编辑pkg_file/CONTROL/control：`Architecture`和`Version`与v2ray对应
 
-3. 安装 [ipkg-utils](http://ipkg.nslu2-linux.org/sources/ipkg-utils-1.7.tar.gz)，使用ipkg-build生成v2ray_*version*_*architecture*.ipk
+3. 安装 [ipkg-utils](http://downloads.buffalo.nas-central.org/ArchIndependent/Sources/ipkg-utils-050831.tar.gz)，使用ipkg-build生成v2ray_*version*_*architecture*.ipk
 ```bash
 ipkg-build -c -o admin -g root <pkg_file目录所在路径> [<ipk包生成路径>]
 ```
