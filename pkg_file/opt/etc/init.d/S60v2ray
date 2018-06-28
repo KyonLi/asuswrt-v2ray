@@ -3,7 +3,7 @@
 NAME=v2ray
 DAEMON=/opt/bin/v2ray/v2ray
 DAEMON_OPTS="-config /opt/etc/v2ray/config.json"
-PIDFILE=/tmp/var/run/$NAME.pid
+PIDFILE=/var/run/$NAME.pid
 
 BYPASS_SOURCE_IP_FILE=/opt/etc/v2ray/bypass_from_ip.txt
 BYPASS_SOURCE_MAC_FILE=/opt/etc/v2ray/bypass_from_mac.txt
@@ -194,4 +194,3 @@ case "$1" in
     exit 1
     ;;
 esac
-
